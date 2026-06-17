@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import InputField from "../components/InputField";
@@ -7,484 +7,45 @@ import SectionCard from "../components/SectionCard";
 import SelectField from "../components/SelectField";
 import ChipGroup from "../components/ChipGroup";
 import "../components/formFields.css";
-
-const steps = [
-  "콘텐츠 기본 정보",
-  "검색 의도·타깃 독자",
-  "직접 경험·절차·수치",
-  "장단점·비교·선택 기준",
-  "정보 박스·사진 근거·릴스",
-  "AI 브리핑형 출력 설정",
-];
-
-const categoryOptions = [
-  "맛집/카페",
-  "헬스장/PT/운동",
-  "피부관리/에스테틱",
-  "병원/클리닉",
-  "숙소/여행",
-  "제품 리뷰",
-  "다이어트/건강",
-  "생활용품",
-  "여행/장소 후기",
-  "기타",
-];
-
-const purposeOptions = [
-  "내돈내산 후기",
-  "체험단 후기",
-  "방문 후기",
-  "제품 리뷰",
-  "정보성 후기",
-  "비교 후기",
-  "추천 리스트형",
-  "경험 공유형",
-];
-
-const contentTypeOptions = [
-  "방문/체험 후기형",
-  "제품 리뷰형",
-  "정보 정리형",
-  "비교 분석형",
-  "추천 리스트형",
-  "경험 기반 정보글",
-  "다이어트/건강 기록형",
-  "여행 기록형",
-  "기존 글 업데이트형",
-];
-
-const contentGoalOptions = [
-  "검색 유입",
-  "체험단 제출",
-  "정보성 글 축적",
-  "개인 경험 기록",
-  "수익형 콘텐츠",
-  "브랜드/장소 소개",
-  "릴스/숏폼 연동",
-  "기존 글 보완",
-];
-
-const disclosureOptions = [
-  "내돈내산",
-  "광고 아님",
-  "제품/서비스 제공받음",
-  "체험단 후기",
-  "협찬 포함",
-  "아직 정하지 않음",
-];
-
-const searchIntentOptions = [
-  "가격 확인형",
-  "후기 확인형",
-  "비교형",
-  "예약 전 확인형",
-  "실패 방지형",
-  "위치 확인형",
-  "사용법 확인형",
-  "부작용/주의사항 확인형",
-  "추천 대상 확인형",
-];
-
-const readerCuriosityOptions = [
-  "가격",
-  "주차",
-  "예약",
-  "소요 시간",
-  "대기 시간",
-  "위치",
-  "통증",
-  "효과",
-  "전후 차이",
-  "사용 기간",
-  "부작용",
-  "웨이팅",
-  "재방문 여부",
-];
-
-const readerAvoidanceOptions = [
-  "광고글",
-  "과장 후기",
-  "가격 불명확",
-  "사진만 많은 글",
-  "정보 없는 감상문",
-  "너무 긴 서론",
-  "장점만 있는 글",
-  "결론 없는 글",
-];
-
-const relatedKeywordOptions = [
-  "주차",
-  "가격",
-  "예약",
-  "영업시간",
-  "위치",
-  "메뉴",
-  "시설",
-  "분위기",
-  "친절한 상담",
-  "초보 추천",
-  "가성비",
-  "재방문",
-  "사진 맛집",
-  "후기",
-  "추천",
-  "웨이팅",
-  "이벤트",
-  "할인",
-];
-
-const situationOptions = [
-  "처음 방문",
-  "재방문",
-  "예약 후 방문",
-  "즉흥 방문",
-  "검색 후 방문",
-  "지인 추천으로 방문",
-  "부모님과 방문",
-  "친구와 방문",
-  "혼자 방문",
-  "퇴근 후 방문",
-  "주말 방문",
-  "여행 중 방문",
-  "다이어트 중",
-  "운동 초보",
-];
-
-const emotionOptions = [
-  "생각보다 만족한",
-  "기대 이상",
-  "솔직히 놀란",
-  "의외로 괜찮았던",
-  "재방문하고 싶은",
-  "조금 아쉬웠던",
-  "부담 없이 좋았던",
-  "초보자도 편한",
-  "깔끔해서 좋았던",
-  "친절해서 기억나는",
-  "숨은 곳 발견한 느낌",
-  "돈 아깝지 않았던",
-];
-
-const targetReaderOptions = [
-  "처음 방문 전 후기를 찾는 사람",
-  "근처에서 갈 곳을 찾는 사람",
-  "가격과 위치를 비교하는 사람",
-  "실제 후기를 보고 싶은 사람",
-  "초보자 입장에서 정보를 원하는 사람",
-  "부모님과 함께 갈 곳을 찾는 사람",
-  "직장인 루틴에 맞는 곳을 찾는 사람",
-  "가성비 좋은 곳을 찾는 사람",
-  "실패 없는 선택을 하고 싶은 사람",
-];
-
-const visitTimeOptions = [
-  "평일 오전",
-  "평일 오후",
-  "평일 저녁",
-  "주말 오전",
-  "주말 오후",
-  "주말 저녁",
-  "정확히 기억나지 않음",
-];
-
-const companionOptions = [
-  "혼자",
-  "친구와 함께",
-  "부모님과 함께",
-  "연인과 함께",
-  "가족과 함께",
-  "직장 동료와 함께",
-  "해당 없음",
-];
-
-const beforeConcernOptions = [
-  "후기가 적어서 걱정됨",
-  "가격이 궁금했음",
-  "주차가 걱정됨",
-  "위치가 헷갈릴까 걱정됨",
-  "사람이 많을까 걱정됨",
-  "초보자라 부담스러웠음",
-  "기대가 크지 않았음",
-  "특별한 걱정 없음",
-];
-
-const firstImpressionOptions = [
-  "생각보다 깔끔했음",
-  "입구부터 찾기 쉬웠음",
-  "분위기가 편안했음",
-  "직원이 친절했음",
-  "생각보다 넓었음",
-  "사진보다 실제가 나았음",
-  "처음에는 평범해 보였음",
-  "조금 어색했지만 금방 괜찮아짐",
-];
-
-const strengthOptions = [
-  "위치가 좋음",
-  "공간이 깔끔함",
-  "직원이 친절함",
-  "가격이 합리적임",
-  "초보자도 이용하기 쉬움",
-  "시설/구성이 좋음",
-  "사진 찍기 좋음",
-  "설명이 자세함",
-  "예약이 편함",
-  "분위기가 편안함",
-  "재방문하고 싶음",
-  "동선이 편함",
-  "대기 시간이 길지 않음",
-  "정보 안내가 명확함",
-];
-
-const concernOptions = [
-  "후기가 아직 많지 않음",
-  "늦게 가면 선택지가 적을 수 있음",
-  "주차가 애매할 수 있음",
-  "피크 시간에는 사람이 많을 수 있음",
-  "가격 정보 확인이 필요함",
-  "예약이 필요할 수 있음",
-  "공간이 생각보다 작을 수 있음",
-  "처음 가면 위치가 헷갈릴 수 있음",
-  "운영시간 확인 필요",
-  "인기 메뉴/시간대는 미리 확인 필요",
-  "특별한 아쉬움은 크지 않음",
-];
-
-const satisfactionOptions = [
-  "매우 만족",
-  "만족",
-  "보통 이상",
-  "아쉬움도 있지만 괜찮음",
-  "재방문은 고민됨",
-];
-
-const revisitOptions = [
-  "재방문 의사 있음",
-  "상황 되면 재방문",
-  "한 번쯤은 추천",
-  "비슷한 선택지가 있으면 비교 후 결정",
-  "재방문은 아직 고민",
-];
-
-const priceRangeOptions = [
-  "가격 정보 없음",
-  "가성비 좋음",
-  "보통 수준",
-  "가격은 있는 편이지만 만족",
-  "이벤트/할인 적용",
-  "상담 후 안내 필요",
-];
-
-const parkingOptions = [
-  "주차 가능",
-  "무료주차 가능",
-  "근처 공영주차장 이용",
-  "주차 공간 협소",
-  "대중교통 추천",
-  "주차 정보 확인 필요",
-  "해당 없음",
-];
-
-const reservationOptions = [
-  "예약 없이 방문 가능",
-  "네이버 예약 가능",
-  "전화 예약 필요",
-  "방문 전 문의 추천",
-  "현장 결제 가능",
-  "사전 예약 필수",
-  "정보 확인 필요",
-];
-
-const photoShotOptions = [
-  "외관/입구 사진",
-  "내부 공간 사진",
-  "메뉴판/가격표 사진",
-  "제품 클로즈업",
-  "이용 전 사진",
-  "이용 후 사진",
-  "주차/가는 길 사진",
-  "직접 먹거나 사용하는 장면",
-  "상담/안내 공간",
-  "영수증/예약 내역",
-  "분위기 컷",
-  "마무리 인증샷",
-];
-
-const hookStyleOptions = [
-  "반전형: 기대 안 했는데 생각보다 좋았던 이야기",
-  "공감형: 나 같은 사람 많을 것 같아서 쓰는 이야기",
-  "문제해결형: 고민하다가 찾은 해결 후기",
-  "비교형: 다른 곳과 비교해서 느낀 차이",
-  "실패방지형: 가기 전에 알면 좋은 정보",
-];
-
-const introStyleOptions = [
-  "결론형",
-  "실패방지형",
-  "비교형",
-  "숫자형",
-  "문제해결형",
-];
-
-const yesNoOptions = ["예", "아니오"];
-
-const aiToneRemoveOptions = ["보통", "강하게", "아주 강하게"];
-
-const toneOptions = [
-  "20~30대 여성 블로거의 친근한 후기 말투",
-  "이모티콘을 자연스럽게 섞은 밝은 말투",
-  "솔직한 내돈내산 후기 말투",
-  "친구에게 추천하듯 편안한 말투",
-  "유머 있고 가벼운 말투",
-  "정보를 깔끔하게 정리하는 말투",
-  "전문적이지만 쉽게 설명하는 말투",
-];
-
-const wordCountOptions = ["1000자", "1500자", "1800자", "2000자", "2500자"];
-
-const reelsStyleOptions = [
-  "브이로그형",
-  "정보 전달형",
-  "솔직 후기형",
-  "비교형",
-  "웃긴 썰형",
-  "감성 기록형",
-];
-
-const reelsGoalOptions = [
-  "조회수 유도",
-  "저장 유도",
-  "댓글 유도",
-  "방문 유도",
-  "구매 유도",
-  "공감 유도",
-];
-
-const initialFormData = {
-  // 1단계 콘텐츠 기본 정보
-  topic: "",
-  placeName: "",
-  category: "",
-  purpose: "",
-  contentType: "",
-  contentGoal: "",
-  disclosureType: "내돈내산",
-  coreConclusion: "",
-  recommendTarget: "",
-  cautionTarget: "",
-
-  // 2단계 검색 의도·타깃 독자
-  mainKeyword: "",
-  localKeyword: "",
-  searchIntent: "",
-  readerCuriosity: [],
-  customReaderCuriosity: "",
-  readerAvoidance: [],
-  customReaderAvoidance: "",
-  relatedKeyword: [],
-  customRelatedKeyword: "",
-  situationKeyword: [],
-  customSituationKeyword: "",
-  emotionKeyword: [],
-  customEmotionKeyword: "",
-  targetReader: [],
-  customTargetReader: "",
-
-  // 3단계 직접 경험·절차·수치
-  visitTime: "",
-  companion: "",
-  beforeConcern: [],
-  firstImpression: [],
-  visitReason: "",
-  actualFlow: "",
-  memorableMoment: "",
-  realExperienceDetail: "",
-  experienceDate: "",
-  beforeState: "",
-  processSteps: "",
-  stepDuration: "",
-  experienceNumbers: "",
-  unexpectedPoint: "",
-  trialAndError: "",
-  resultChange: "",
-
-  // 4단계 장단점·비교·선택 기준
-  selectedStrengths: [],
-  goodPointDetail: "",
-  bestPoint: "",
-  selectedConcerns: [],
-  badPointDetail: "",
-  cautionPoint: "",
-  satisfaction: "만족",
-  revisitIntention: "상황 되면 재방문",
-  comparisonTarget: "",
-  comparisonCriteria: "",
-  betterPoint: "",
-  alternativeBetterCase: "",
-  selectionStandard: "",
-
-  // 5단계 정보 박스·사진 근거·릴스
-  placeAddress: "",
-  priceRange: "가격 정보 없음",
-  priceDetail: "",
-  operatingHours: "",
-  parkingInfoChoice: "주차 정보 확인 필요",
-  reservationInfoChoice: "정보 확인 필요",
-  eventInfo: "",
-  placeInfoDetail: "",
-  infoBoxItems: "",
-  checkBeforeVisit: "",
-  relatedPostTopic: "",
-  photoShots: [],
-  customPhoto: "",
-  photoOrder: "",
-  photoDescriptionDetail: "",
-  photoProofPoint: "",
-  photoCaptionPurpose: "",
-  reelsStyle: "정보 전달형",
-  reelsGoal: "저장 유도",
-
-  // 6단계 AI 브리핑형 출력 설정
-  tone: "20~30대 여성 블로거의 친근한 후기 말투",
-  wordCount: "1800자",
-  hookStyle: "",
-  hookPoint: "",
-  uniquePoint: "",
-  mustInclude: "",
-  avoidPoint: "",
-  introStyle: "결론형",
-  includeInfoBox: "예",
-  includeComparisonTable: "예",
-  includeSummaryBox: "예",
-  includeRelatedPost: "예",
-  includeUpdateChecklist: "아니오",
-  aiToneRemoveLevel: "강하게",
-};
-
-const requiredFieldsByStep = {
-  0: {
-    topic: "글 주제를 입력해주세요.",
-    contentType: "콘텐츠 유형을 선택해주세요.",
-    contentGoal: "콘텐츠 운영 목적을 선택해주세요.",
-    coreConclusion: "첫 3줄에 들어갈 핵심 결론을 입력해주세요.",
-    recommendTarget: "추천 대상을 입력해주세요.",
-  },
-  1: {
-    mainKeyword: "대표 키워드를 입력해주세요.",
-  },
-  2: {
-    realExperienceDetail: "실제 경험을 한두 문장이라도 입력해주세요.",
-    experienceNumbers: "직접 경험 수치 3개 이상을 입력해주세요.",
-  },
-  3: {
-    goodPointDetail: "좋았던 점 또는 핵심 장점을 입력해주세요.",
-    badPointDetail: "아쉬웠던 점 또는 주의할 점을 입력해주세요.",
-  },
-  5: {
-    tone: "원하는 톤을 선택해주세요.",
-    wordCount: "원하는 글자 수를 선택해주세요.",
-  },
-};
+import {
+  steps,
+  inputModeOptions,
+  categoryOptions,
+  purposeOptions,
+  contentTypeOptions,
+  contentGoalOptions,
+  disclosureOptions,
+  searchIntentOptions,
+  readerCuriosityOptions,
+  readerAvoidanceOptions,
+  relatedKeywordOptions,
+  situationOptions,
+  emotionOptions,
+  targetReaderOptions,
+  visitTimeOptions,
+  companionOptions,
+  beforeConcernOptions,
+  firstImpressionOptions,
+  strengthOptions,
+  concernOptions,
+  satisfactionOptions,
+  revisitOptions,
+  priceRangeOptions,
+  parkingOptions,
+  reservationOptions,
+  photoShotOptions,
+  hookStyleOptions,
+  introStyleOptions,
+  yesNoOptions,
+  aiToneRemoveOptions,
+  toneOptions,
+  wordCountOptions,
+  reelsStyleOptions,
+  reelsGoalOptions,
+} from "../data/formOptions";
+import { initialFormData } from "../data/initialFormData";
+import { requiredFieldsByStep } from "../data/requiredFields";
+import { buildPromptData } from "../utils/buildPromptData";
 
 function FormPage() {
   const [formData, setFormData] = useState(initialFormData);
@@ -492,22 +53,23 @@ function FormPage() {
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
-  const joinArray = (value) => {
-    if (Array.isArray(value)) return value.join(", ");
-    return value || "";
-  };
+  useEffect(() => {
+    const savedDraft = localStorage.getItem("blogPromptDraft");
 
-  const combineText = (items) => {
-    return items
-      .filter((item) => item && String(item).trim() !== "")
-      .join("\n");
-  };
+    if (!savedDraft) return;
 
-  const combineInline = (items) => {
-    return items
-      .filter((item) => item && String(item).trim() !== "")
-      .join(", ");
-  };
+    try {
+      const parsedDraft = JSON.parse(savedDraft);
+      setFormData((prev) => ({ ...prev, ...parsedDraft }));
+    } catch (error) {
+      localStorage.removeItem("blogPromptDraft");
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("blogPromptDraft", JSON.stringify(formData));
+  }, [formData]);
+
 
   const needsLocalKeyword =
     formData.contentType === "방문/체험 후기형" ||
@@ -586,236 +148,13 @@ function FormPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const buildPromptData = () => {
-    const situationKeyword = combineInline([
-      joinArray(formData.situationKeyword),
-      formData.customSituationKeyword,
-      formData.visitTime,
-      formData.companion,
-      joinArray(formData.beforeConcern),
-    ]);
-
-    const relatedKeyword = combineInline([
-      formData.category,
-      formData.searchIntent,
-      joinArray(formData.relatedKeyword),
-      formData.customRelatedKeyword,
-    ]);
-
-    const emotionKeyword = combineInline([
-      joinArray(formData.emotionKeyword),
-      formData.customEmotionKeyword,
-      joinArray(formData.firstImpression),
-      formData.satisfaction,
-    ]);
-
-    const targetReader = combineInline([
-      joinArray(formData.targetReader),
-      formData.customTargetReader,
-      formData.recommendTarget,
-      formData.revisitIntention,
-    ]);
-
-    const hookPoint = combineText([
-      formData.hookStyle && `도입부 스타일: ${formData.hookStyle}`,
-      formData.hookPoint && `흥미 포인트: ${formData.hookPoint}`,
-      formData.visitReason && `방문/구매 이유: ${formData.visitReason}`,
-      joinArray(formData.beforeConcern) &&
-        `방문 전 걱정/기대: ${joinArray(formData.beforeConcern)}`,
-    ]);
-
-    const uniquePoint = combineText([
-      formData.uniquePoint && `반전/특이점: ${formData.uniquePoint}`,
-      formData.memorableMoment && `기억에 남는 순간: ${formData.memorableMoment}`,
-      joinArray(formData.firstImpression) &&
-        `첫인상: ${joinArray(formData.firstImpression)}`,
-      formData.unexpectedPoint && `예상과 달랐던 점: ${formData.unexpectedPoint}`,
-      formData.bestPoint && `가장 좋았던 한 가지: ${formData.bestPoint}`,
-    ]);
-
-    const realExperience = combineText([
-      formData.visitTime && `방문/사용 시간대: ${formData.visitTime}`,
-      formData.companion && `동행 여부: ${formData.companion}`,
-      formData.visitReason && `방문/구매 이유: ${formData.visitReason}`,
-      formData.actualFlow && `이용 흐름: ${formData.actualFlow}`,
-      formData.processSteps && `단계별 진행 순서: ${formData.processSteps}`,
-      formData.memorableMoment && `기억에 남는 순간: ${formData.memorableMoment}`,
-      formData.realExperienceDetail &&
-        `실제 경험 상세: ${formData.realExperienceDetail}`,
-    ]);
-
-    const goodPoint = combineText([
-      joinArray(formData.selectedStrengths) &&
-        `선택한 장점: ${joinArray(formData.selectedStrengths)}`,
-      formData.goodPointDetail && `좋았던 점 상세: ${formData.goodPointDetail}`,
-      formData.bestPoint && `가장 만족했던 한 가지: ${formData.bestPoint}`,
-      `전체 만족도: ${formData.satisfaction}`,
-      `재방문 의사: ${formData.revisitIntention}`,
-    ]);
-
-    const badPoint = combineText([
-      joinArray(formData.selectedConcerns) &&
-        `선택한 아쉬운 점: ${joinArray(formData.selectedConcerns)}`,
-      formData.badPointDetail && `아쉬웠던 점 상세: ${formData.badPointDetail}`,
-      formData.cautionPoint && `방문/구매 전 참고할 점: ${formData.cautionPoint}`,
-      formData.cautionTarget && `주의/비추천 대상: ${formData.cautionTarget}`,
-    ]);
-
-    const placeInfo = combineText([
-      formData.category && `카테고리: ${formData.category}`,
-      formData.disclosureType && `후기 유형/고지: ${formData.disclosureType}`,
-      formData.placeAddress && `주소/위치: ${formData.placeAddress}`,
-      `가격/비용 느낌: ${formData.priceRange}`,
-      formData.priceDetail && `가격 상세: ${formData.priceDetail}`,
-      formData.operatingHours && `운영시간: ${formData.operatingHours}`,
-      `주차 정보: ${formData.parkingInfoChoice}`,
-      `예약/이용 방법: ${formData.reservationInfoChoice}`,
-      formData.eventInfo && `이벤트/할인 정보: ${formData.eventInfo}`,
-      formData.placeInfoDetail && `추가 정보: ${formData.placeInfoDetail}`,
-    ]);
-
-    const photoDescription = combineText([
-      joinArray(formData.photoShots) &&
-        `선택한 사진/영상 컷: ${joinArray(formData.photoShots)}`,
-      formData.customPhoto && `추가 촬영 컷: ${formData.customPhoto}`,
-      formData.photoOrder && `사진 배치 순서: ${formData.photoOrder}`,
-      formData.photoDescriptionDetail &&
-        `사진 설명 상세: ${formData.photoDescriptionDetail}`,
-    ]);
-
-    const aiBriefingIntro = combineText([
-      formData.coreConclusion && `핵심 결론: ${formData.coreConclusion}`,
-      formData.experienceNumbers && `직접 경험 수치: ${formData.experienceNumbers}`,
-      formData.recommendTarget && `추천 대상: ${formData.recommendTarget}`,
-      formData.cautionTarget && `주의/비추천 대상: ${formData.cautionTarget}`,
-      formData.introStyle && `첫 3줄 스타일: ${formData.introStyle}`,
-    ]);
-
-    const readerIntentData = combineText([
-      formData.searchIntent && `검색 의도: ${formData.searchIntent}`,
-      joinArray(formData.readerCuriosity) &&
-        `독자가 가장 궁금한 것: ${joinArray(formData.readerCuriosity)}`,
-      formData.customReaderCuriosity &&
-        `추가 궁금증: ${formData.customReaderCuriosity}`,
-      joinArray(formData.readerAvoidance) &&
-        `독자가 피하고 싶은 것: ${joinArray(formData.readerAvoidance)}`,
-      formData.customReaderAvoidance &&
-        `추가 회피 요소: ${formData.customReaderAvoidance}`,
-    ]);
-
-    const experienceEvidence = combineText([
-      formData.experienceDate && `경험 날짜/시기: ${formData.experienceDate}`,
-      formData.beforeState && `방문/사용 전 상태: ${formData.beforeState}`,
-      formData.processSteps && `실제 진행 순서: ${formData.processSteps}`,
-      formData.stepDuration && `단계별 소요 시간: ${formData.stepDuration}`,
-      formData.experienceNumbers && `직접 경험 수치: ${formData.experienceNumbers}`,
-      formData.unexpectedPoint && `예상과 달랐던 점: ${formData.unexpectedPoint}`,
-      formData.trialAndError && `시행착오: ${formData.trialAndError}`,
-      formData.resultChange && `결과/변화: ${formData.resultChange}`,
-    ]);
-
-    const comparisonData = combineText([
-      formData.comparisonTarget && `비교 대상: ${formData.comparisonTarget}`,
-      formData.comparisonCriteria && `비교 기준: ${formData.comparisonCriteria}`,
-      formData.betterPoint &&
-        `이곳/이 제품/이 방법이 더 나은 점: ${formData.betterPoint}`,
-      formData.alternativeBetterCase &&
-        `다른 선택지가 나을 수 있는 경우: ${formData.alternativeBetterCase}`,
-      formData.selectionStandard && `최종 선택 기준: ${formData.selectionStandard}`,
-    ]);
-
-    const summaryBoxData = combineText([
-      formData.infoBoxItems && `정보 박스에 넣을 내용: ${formData.infoBoxItems}`,
-      formData.coreConclusion && `한 줄 결론: ${formData.coreConclusion}`,
-      formData.goodPointDetail && `좋았던 점 요약: ${formData.goodPointDetail}`,
-      formData.badPointDetail && `아쉬웠던 점 요약: ${formData.badPointDetail}`,
-      formData.recommendTarget && `추천 대상: ${formData.recommendTarget}`,
-      formData.checkBeforeVisit &&
-        `방문/구매/사용 전 확인할 점: ${formData.checkBeforeVisit}`,
-    ]);
-
-    const imageEvidenceData = combineText([
-      joinArray(formData.photoShots) &&
-        `선택한 사진/영상 컷: ${joinArray(formData.photoShots)}`,
-      formData.photoProofPoint &&
-        `사진이 증명하는 정보: ${formData.photoProofPoint}`,
-      formData.photoCaptionPurpose &&
-        `사진별 캡션 목적: ${formData.photoCaptionPurpose}`,
-      formData.photoOrder && `사진 배치 순서: ${formData.photoOrder}`,
-      formData.photoDescriptionDetail &&
-        `사진 설명 상세: ${formData.photoDescriptionDetail}`,
-    ]);
-
-    const outputSettingData = combineText([
-      formData.includeInfoBox && `정보 박스 포함: ${formData.includeInfoBox}`,
-      formData.includeComparisonTable &&
-        `비교표 포함: ${formData.includeComparisonTable}`,
-      formData.includeSummaryBox &&
-        `하단 요약 박스 포함: ${formData.includeSummaryBox}`,
-      formData.includeRelatedPost &&
-        `관련 글 링크 문구 포함: ${formData.includeRelatedPost}`,
-      formData.includeUpdateChecklist &&
-        `기존 글 업데이트 체크리스트 포함: ${formData.includeUpdateChecklist}`,
-      formData.aiToneRemoveLevel &&
-        `AI 말투 제거 강도: ${formData.aiToneRemoveLevel}`,
-    ]);
-
-    const writingStyleGuide = combineText([
-      "20~30대 여성 블로거가 직접 경험하고 쓰는 듯한 자연스러운 말투로 작성해주세요.",
-      "첫 3줄 안에 핵심 결론, 직접 경험 수치, 추천 대상을 넣어주세요.",
-      "딱딱한 설명문이나 광고 문구처럼 보이지 않게, 실제 경험에서 나온 판단처럼 작성해주세요.",
-      "문단은 짧게 나누고, 중간중간 소제목·정보 박스·비교표·하단 요약 박스를 활용해주세요.",
-      "과한 감탄사, 반복되는 이모티콘, 지나치게 광고 같은 표현은 피해주세요.",
-      "건강·다이어트·의료 관련 내용은 효능이나 치료 효과를 단정하지 말고 개인 경험과 확인 필요 사항을 구분해주세요.",
-      formData.mustInclude && `꼭 포함할 내용: ${formData.mustInclude}`,
-      formData.avoidPoint && `피하고 싶은 표현: ${formData.avoidPoint}`,
-      formData.aiToneRemoveLevel && `AI 말투 제거 강도: ${formData.aiToneRemoveLevel}`,
-    ]);
-
-    return {
-      topic: formData.topic,
-      placeName: formData.placeName,
-      purpose: formData.purpose,
-      contentType: formData.contentType,
-      contentGoal: formData.contentGoal,
-      mainKeyword: formData.mainKeyword,
-      localKeyword: formData.localKeyword,
-      situationKeyword,
-      relatedKeyword,
-      emotionKeyword,
-      targetReader,
-      tone: formData.tone,
-      writingStyleGuide,
-      mustInclude: formData.mustInclude,
-      avoidPoint: formData.avoidPoint,
-      hookPoint,
-      uniquePoint,
-      realExperience,
-      goodPoint,
-      badPoint,
-      placeInfo,
-      photoDescription,
-      aiBriefingIntro,
-      readerIntentData,
-      experienceEvidence,
-      comparisonData,
-      summaryBoxData,
-      imageEvidenceData,
-      outputSettingData,
-      relatedPostTopic: formData.relatedPostTopic,
-      wordCount: formData.wordCount,
-      reelsStyle: formData.reelsStyle,
-      reelsGoal: formData.reelsGoal,
-    };
-  };
-
   const handleSubmit = (event) => {
     event.preventDefault();
 
     const isValid = validateStep(currentStep);
     if (!isValid) return;
 
-    const dataToSave = buildPromptData();
+    const dataToSave = buildPromptData(formData);
 
     localStorage.setItem("blogPromptInput", JSON.stringify(dataToSave));
     navigate("/result");
@@ -828,6 +167,15 @@ function FormPage() {
           title="1단계. 콘텐츠 기본 정보"
           description="글의 유형, 목적, 핵심 결론을 먼저 정합니다. 첫 3줄 품질을 결정하는 단계입니다."
         >
+          <SelectField
+            label="입력 모드"
+            name="mode"
+            value={formData.mode}
+            onChange={handleChange}
+            options={inputModeOptions}
+            description="빠른 생성 모드는 필수 정보 위주, 정밀 생성 모드는 모든 세부 항목을 활용합니다."
+          />
+
           <InputField
             label="글 주제"
             name="topic"
@@ -903,10 +251,9 @@ function FormPage() {
             name="coreConclusion"
             value={formData.coreConclusion}
             onChange={handleChange}
-            placeholder="예: 초보자도 상담받기 편했지만, 주차는 방문 전 확인하는 게 좋았다."
-            required
+            placeholder="비워두면 입력 정보를 바탕으로 자동 생성됩니다. 예: 초보자도 상담받기 편했지만, 주차는 방문 전 확인하는 게 좋았다."
             error={errors.coreConclusion}
-            description="첫 3줄에 반드시 들어갈 결론입니다."
+            description="선택 입력입니다. 직접 쓰지 않으면 주제, 경험, 장단점, 수치 정보를 바탕으로 가장 적합한 첫 3줄 결론을 생성하도록 프롬프트에 지시합니다."
             rows={3}
           />
 
@@ -915,10 +262,9 @@ function FormPage() {
             name="recommendTarget"
             value={formData.recommendTarget}
             onChange={handleChange}
-            placeholder="예: 처음 방문 전 가격, 분위기, 소요 시간을 알고 싶은 사람"
-            required
+            placeholder="비워두면 검색 의도와 경험 정보를 바탕으로 자동 생성됩니다. 예: 처음 방문 전 가격, 분위기, 소요 시간을 알고 싶은 사람"
             error={errors.recommendTarget}
-            description="이 글이 가장 도움 될 독자를 입력해주세요."
+            description="선택 입력입니다. 직접 쓰지 않으면 대표 키워드, 검색 의도, 독자 궁금증을 바탕으로 가장 적합한 추천 대상을 생성하도록 프롬프트에 지시합니다."
             rows={3}
           />
 
@@ -1467,6 +813,73 @@ function FormPage() {
             onChange={handleChange}
             placeholder="예: 역에서 도보 5분이라 접근성이 좋고, 큰길가라 찾기 쉬웠다."
             description="주소, 위치, 특징 외에 더 넣고 싶은 정보를 입력해주세요."
+            rows={3}
+          />
+
+          <InputField
+            label="정보 확인 기준일"
+            name="infoCheckedDate"
+            value={formData.infoCheckedDate}
+            onChange={handleChange}
+            placeholder="예: 2026년 6월 기준"
+            description="가격, 운영시간, 예약 정보를 확인한 기준일입니다."
+          />
+
+          <InputField
+            label="공식 정보 출처"
+            name="officialSource"
+            value={formData.officialSource}
+            onChange={handleChange}
+            placeholder="예: 네이버 플레이스, 공식 홈페이지, 인스타그램, 전화 문의"
+            description="공식적으로 확인한 정보 출처를 입력해주세요."
+          />
+
+          <InputField
+            label="가격 확인 기준"
+            name="priceUpdatedDate"
+            value={formData.priceUpdatedDate}
+            onChange={handleChange}
+            placeholder="예: 2026년 6월 방문 기준 / 이벤트가에 따라 변동"
+            description="가격 정보가 바뀔 수 있다면 기준 시점을 적어주세요."
+          />
+
+          <TextAreaField
+            label="공식 정보로 확인한 내용"
+            name="factCheckedInfo"
+            value={formData.factCheckedInfo}
+            onChange={handleChange}
+            placeholder="예: 영업시간, 예약 방법, 위치, 주차 여부는 네이버 플레이스에서 확인"
+            description="본문에서 객관 정보로 다룰 내용을 입력해주세요."
+            rows={3}
+          />
+
+          <TextAreaField
+            label="직접 경험한 내용"
+            name="experienceOnlyInfo"
+            value={formData.experienceOnlyInfo}
+            onChange={handleChange}
+            placeholder="예: 평일 저녁 방문 기준 대기 없이 바로 안내받았다."
+            description="실제 경험으로만 말할 수 있는 내용을 입력해주세요."
+            rows={3}
+          />
+
+          <TextAreaField
+            label="확인 필요 정보"
+            name="needCheckInfo"
+            value={formData.needCheckInfo}
+            onChange={handleChange}
+            placeholder="예: 가격은 이벤트 여부에 따라 달라질 수 있어 방문 전 문의 필요"
+            description="단정하지 말고 확인 필요로 처리할 정보를 입력해주세요."
+            rows={3}
+          />
+
+          <TextAreaField
+            label="개인적인 느낌"
+            name="personalFeeling"
+            value={formData.personalFeeling}
+            onChange={handleChange}
+            placeholder="예: 개인적으로는 상담이 자세해서 처음 가는 부담이 줄었다."
+            description="팩트와 구분해서 개인 감상으로 표현할 내용을 입력해주세요."
             rows={3}
           />
 

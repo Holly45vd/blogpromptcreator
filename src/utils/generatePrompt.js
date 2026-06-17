@@ -1,6 +1,28 @@
 const safe = (value, fallback = "") => value || fallback;
 
 export function generatePrompt(data) {
+  const shouldInclude = (value) => value === "예";
+
+  const infoBoxInstruction = shouldInclude(data.includeInfoBox)
+    ? "- 가격, 위치, 예약, 주차, 소요 시간, 사용 기간, 주의사항은 정보 박스로 정리해줘."
+    : "- 가격, 위치, 예약, 주차, 소요 시간, 사용 기간, 주의사항은 별도 정보 박스 없이 본문 안에 자연스럽게 녹여줘.";
+
+  const comparisonInstruction = shouldInclude(data.includeComparisonTable)
+    ? "- 본문 중간에는 비교표를 1개 넣어줘."
+    : "- 비교표는 만들지 말고, 비교 포인트를 짧은 bullet 형태로만 정리해줘.";
+
+  const summaryBoxInstruction = shouldInclude(data.includeSummaryBox)
+    ? "- 하단에는 요약 박스를 넣어줘."
+    : "- 하단 요약 박스는 생략하고, 마무리 문단 안에서만 핵심을 정리해줘.";
+
+  const relatedPostInstruction = shouldInclude(data.includeRelatedPost)
+    ? "- 하단에 함께 보면 좋은 관련 글 링크 문구를 2~3개 넣어줘."
+    : "- 관련 글 링크 문구는 생략해줘.";
+
+  const updateChecklistInstruction = shouldInclude(data.includeUpdateChecklist)
+    ? "- 기존 글 업데이트 체크리스트를 포함해줘."
+    : "- 기존 글 업데이트 체크리스트는 출력하지 마.";
+
   return `
 너는 네이버 블로그 SEO, AI 브리핑 대응 구조, 경험 기반 정보 콘텐츠, 후기형·정보형·비교형·추천형 글쓰기를 이해하는 블로그 콘텐츠 디렉터야.
 
@@ -31,6 +53,7 @@ export function generatePrompt(data) {
 - 감정/공감 키워드: ${safe(data.emotionKeyword)}
 - 타깃 독자: ${safe(data.targetReader)}
 - AI 브리핑 첫 3줄 재료: ${safe(data.aiBriefingIntro)}
+  ※ 핵심 결론이나 추천 대상이 사용자가 직접 입력하지 않은 상태라면, 아래 전체 입력값을 바탕으로 가장 적합한 결론과 추천 대상을 직접 도출해줘. 사용자에게 다시 묻지 마.
 - 직접 경험 근거: ${safe(data.experienceEvidence)}
 - 실제 경험: ${safe(data.realExperience)}
 - 좋았던 점: ${safe(data.goodPoint)}
@@ -41,6 +64,7 @@ export function generatePrompt(data) {
 - 사진 근거 자료: ${safe(data.imageEvidenceData)}
 - 관련 글 링크 주제: ${safe(data.relatedPostTopic)}
 - 출력 설정: ${safe(data.outputSettingData)}
+- 최신성·검증 정보: ${safe(data.verificationData)}
 - 원하는 톤: ${safe(data.tone)}
 - 글쓰기 스타일 가이드: ${safe(data.writingStyleGuide)}
 - 흥미 포인트: ${safe(data.hookPoint)}
@@ -50,14 +74,18 @@ export function generatePrompt(data) {
 - 원하는 글자 수: ${safe(data.wordCount, "1800자")}
 
 [AI 브리핑 대응 조건]
-- 첫 3줄 안에 반드시 결론, 직접 경험 수치 1개 이상, 추천 대상을 포함해줘.
+- 첫 3줄 안에 반드시 결론, 직접 경험 수치 1개 이상, 추천 대상을 포함해줘. 단, 핵심 결론/추천 대상 입력값이 비어 있거나 자동 생성 지시가 들어 있으면 주제, 검색 의도, 실제 경험, 장단점, 수치, 장소/제품 정보를 종합해서 직접 만들어줘.
 - 서론을 길게 쓰지 말고, 독자가 검색한 이유에 바로 답해줘.
 - 본문은 소제목 4~6개로 나눠줘.
 - 각 소제목마다 실제 경험, 수치, 판단 기준 중 최소 1개를 포함해줘.
-- 가격, 위치, 예약, 주차, 소요 시간, 사용 기간, 주의사항은 정보 박스로 정리해줘.
-- 본문 중간에는 비교표를 1개 넣어줘.
-- 하단에는 요약 박스를 넣어줘.
+${infoBoxInstruction}
+${comparisonInstruction}
+${summaryBoxInstruction}
 - 직접 경험, 일반 정보, 확인 필요 정보를 구분해서 써줘.
+- 가격, 운영시간, 예약, 이벤트 정보는 기준일과 출처가 있는 경우 함께 밝혀줘.
+- 확인 필요 정보는 단정하지 말고 “방문 전 확인이 필요하다”는 식으로 구분해줘.
+${relatedPostInstruction}
+${updateChecklistInstruction}
 - 검색 키워드는 억지로 반복하지 말고 자연스럽게 배치해줘.
 
 [글쓰기 방향]
@@ -100,15 +128,15 @@ export function generatePrompt(data) {
 1. 콘텐츠 방향 요약
    - 콘텐츠 유형
    - 검색 의도
-   - 핵심 결론
-   - 추천 대상
+   - 핵심 결론: 입력값 기반으로 자동 도출. 사용자가 입력한 결론이 있으면 우선 반영
+   - 추천 대상: 입력값 기반으로 자동 도출. 사용자가 입력한 추천 대상이 있으면 우선 반영
 
 2. 제목 후보 10개
    - 검색 노출형 5개
    - 클릭 유도형 5개
 
 3. 첫 3줄 도입부 후보 5개
-   - 각 후보에는 결론, 직접 경험 수치, 추천 대상 포함
+   - 각 후보에는 입력값을 바탕으로 도출한 결론, 직접 경험 수치, 추천 대상 포함
 
 4. 핵심 정보 박스
    - 장소/제품/주제
@@ -125,7 +153,7 @@ export function generatePrompt(data) {
 
 6. 블로그 본문 초안
    - ${safe(data.wordCount, "1800자")} 내외
-   - 첫 3줄에 결론, 수치, 추천 대상 포함
+   - 첫 3줄에 입력값을 바탕으로 도출한 결론, 수치, 추천 대상 포함
    - 짧은 문단 중심
    - 정보 박스, 비교표, 요약 박스 포함
    - 사진 삽입 위치 표시
@@ -161,8 +189,15 @@ export function generatePrompt(data) {
 
 13. 검색 키워드 조합 추천
 
-14. 기존 글 업데이트 체크리스트
-   - 빠진 수치
+14. 독자가 궁금해할 Q&A 5개
+   - 가격/비용 관련
+   - 예약/이용 방법 관련
+   - 위치/주차 관련
+   - 소요 시간/사용 기간 관련
+   - 추천/비추천 대상 관련
+
+15. 기존 글 업데이트 체크리스트
+   - ${shouldInclude(data.includeUpdateChecklist) ? "빠진 수치" : "사용자가 아니오를 선택했다면 이 섹션은 생략"}
    - 보완할 정보 박스
    - 제목 개선 방향
    - 도입부 개선 방향
@@ -184,6 +219,7 @@ export function generateReelsPrompt(data) {
 - 대표 키워드: ${safe(data.mainKeyword)}
 - 지역 키워드: ${safe(data.localKeyword)}
 - AI 브리핑 첫 3줄 재료: ${safe(data.aiBriefingIntro)}
+  ※ 핵심 결론이나 추천 대상이 비어 있으면 전체 입력값을 바탕으로 숏폼에 맞는 결론/추천 대상을 직접 도출해줘.
 - 검색 의도·독자 고민: ${safe(data.readerIntentData)}
 - 직접 경험 근거: ${safe(data.experienceEvidence)}
 - 실제 경험: ${safe(data.realExperience)}
@@ -444,6 +480,7 @@ export function generateSeoPrompt(data) {
 - 지역 키워드: ${safe(data.localKeyword)}
 - 검색 의도·독자 고민: ${safe(data.readerIntentData)}
 - AI 브리핑 첫 3줄 재료: ${safe(data.aiBriefingIntro)}
+  ※ 핵심 결론이나 추천 대상이 비어 있으면 전체 입력값을 바탕으로 SEO 제목과 도입부에 맞는 결론/추천 대상을 직접 도출해줘.
 - 직접 경험 근거: ${safe(data.experienceEvidence)}
 - 비교·선택 기준: ${safe(data.comparisonData)}
 - 정보 박스·요약 박스 재료: ${safe(data.summaryBoxData)}

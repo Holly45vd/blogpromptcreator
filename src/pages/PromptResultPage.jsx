@@ -12,6 +12,7 @@ function PromptResultPage() {
   const [seoPrompt, setSeoPrompt] = useState("");
   const [activeType, setActiveType] = useState("blog");
   const [copied, setCopied] = useState(false);
+  const [inputJson, setInputJson] = useState("");
   const navigate = useNavigate();
 
   const promptMap = {
@@ -45,6 +46,7 @@ function PromptResultPage() {
     try {
       const parsedData = JSON.parse(savedData);
 
+      setInputJson(JSON.stringify(parsedData, null, 2));
       setBlogPrompt(generatePrompt(parsedData));
       setReelsPrompt(generateReelsPrompt(parsedData));
       setSeoPrompt(generateSeoPrompt(parsedData));
@@ -68,8 +70,29 @@ function PromptResultPage() {
     }
   };
 
+  const handleCopyJson = async () => {
+    try {
+      await navigator.clipboard.writeText(inputJson);
+      alert("입력값 JSON을 복사했어요.");
+    } catch (error) {
+      alert("JSON 복사에 실패했어요. 직접 복사해주세요.");
+    }
+  };
+
+  const handleDownload = () => {
+    const blob = new Blob([currentPrompt], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `${activeType}-prompt.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleReset = () => {
     localStorage.removeItem("blogPromptInput");
+    localStorage.removeItem("blogPromptDraft");
     navigate("/");
   };
 
@@ -127,9 +150,17 @@ function PromptResultPage() {
               <p style={styles.resultDescription}>{descriptionMap[activeType]}</p>
             </div>
 
-            <button type="button" onClick={handleCopy} style={styles.copyButton}>
-              {copied ? "복사 완료!" : "복사하기"}
-            </button>
+            <div style={styles.resultActions}>
+              <button type="button" onClick={handleCopy} style={styles.copyButton}>
+                {copied ? "복사 완료!" : "복사하기"}
+              </button>
+              <button type="button" onClick={handleDownload} style={styles.secondarySmallButton}>
+                TXT 저장
+              </button>
+              <button type="button" onClick={handleCopyJson} style={styles.secondarySmallButton}>
+                입력값 JSON 복사
+              </button>
+            </div>
           </div>
 
           <pre style={styles.promptBox}>{currentPrompt}</pre>
@@ -236,12 +267,29 @@ const styles = {
     lineHeight: "1.5",
     margin: 0,
   },
+  resultActions: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    justifyContent: "flex-end",
+  },
   copyButton: {
     padding: "10px 14px",
     border: "none",
     borderRadius: "10px",
     backgroundColor: "#03c75a",
     color: "#fff",
+    fontSize: "14px",
+    fontWeight: "700",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+  secondarySmallButton: {
+    padding: "10px 14px",
+    border: "1px solid #d6d6d6",
+    borderRadius: "10px",
+    backgroundColor: "#fff",
+    color: "#444",
     fontSize: "14px",
     fontWeight: "700",
     cursor: "pointer",

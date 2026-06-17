@@ -30,6 +30,7 @@ function ChipGroup({
             <button
               key={option}
               type="button"
+              aria-pressed={isSelected}
               onClick={() => handleToggle(option)}
               className={`chip-group__item ${isSelected ? "chip-group__item--selected" : ""}`}
             >
