@@ -1,15 +1,38 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { generatePrompt, generateReelsPrompt } from "../utils/generatePrompt";
+import {
+  generatePrompt,
+  generateReelsPrompt,
+  generateSeoPrompt,
+} from "../utils/generatePrompt";
 
 function PromptResultPage() {
   const [blogPrompt, setBlogPrompt] = useState("");
   const [reelsPrompt, setReelsPrompt] = useState("");
+  const [seoPrompt, setSeoPrompt] = useState("");
   const [activeType, setActiveType] = useState("blog");
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
 
-  const currentPrompt = activeType === "blog" ? blogPrompt : reelsPrompt;
+  const promptMap = {
+    blog: blogPrompt,
+    reels: reelsPrompt,
+    seo: seoPrompt,
+  };
+
+  const titleMap = {
+    blog: "네이버 블로그용 프롬프트",
+    reels: "릴스/쇼츠용 프롬프트",
+    seo: "제목/SEO 전략 프롬프트",
+  };
+
+  const descriptionMap = {
+    blog: "AI 브리핑형 블로그 본문, 정보 박스, 비교표, 요약 박스를 생성하는 프롬프트예요.",
+    reels: "15초/30초 영상 스크립트, 후킹 멘트, 자막, 촬영 컷을 생성하는 프롬프트예요.",
+    seo: "제목, 롱테일 키워드, 목차, Q&A, 업데이트 체크리스트를 따로 설계하는 프롬프트예요.",
+  };
+
+  const currentPrompt = promptMap[activeType] || blogPrompt;
 
   useEffect(() => {
     const savedData = localStorage.getItem("blogPromptInput");
@@ -19,10 +42,17 @@ function PromptResultPage() {
       return;
     }
 
-    const parsedData = JSON.parse(savedData);
+    try {
+      const parsedData = JSON.parse(savedData);
 
-    setBlogPrompt(generatePrompt(parsedData));
-    setReelsPrompt(generateReelsPrompt(parsedData));
+      setBlogPrompt(generatePrompt(parsedData));
+      setReelsPrompt(generateReelsPrompt(parsedData));
+      setSeoPrompt(generateSeoPrompt(parsedData));
+    } catch (error) {
+      alert("저장된 입력값을 불러오지 못했어요. 처음부터 다시 입력해주세요.");
+      localStorage.removeItem("blogPromptInput");
+      navigate("/");
+    }
   }, [navigate]);
 
   const handleCopy = async () => {
@@ -48,10 +78,10 @@ function PromptResultPage() {
       <div style={styles.container}>
         <header style={styles.header}>
           <p style={styles.badge}>Prompt Result</p>
-          <h1 style={styles.title}>완성된 콘텐츠 프롬프트</h1>
+          <h1 style={styles.title}>완성된 AI 브리핑형 콘텐츠 프롬프트</h1>
           <p style={styles.subtitle}>
-            입력한 내용을 바탕으로 블로그용 프롬프트와 릴스용 프롬프트를
-            각각 확인할 수 있어요.
+            입력한 내용을 바탕으로 블로그용, 릴스용, 제목/SEO 전략용
+            프롬프트를 각각 확인할 수 있어요.
           </p>
         </header>
 
@@ -77,21 +107,24 @@ function PromptResultPage() {
           >
             릴스 프롬프트
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveType("seo")}
+            style={{
+              ...styles.tabButton,
+              ...(activeType === "seo" ? styles.activeTab : {}),
+            }}
+          >
+            제목/SEO 프롬프트
+          </button>
         </div>
 
         <section style={styles.resultCard}>
           <div style={styles.resultHeader}>
             <div>
-              <h2 style={styles.resultTitle}>
-                {activeType === "blog"
-                  ? "네이버 블로그용 프롬프트"
-                  : "릴스/쇼츠용 프롬프트"}
-              </h2>
-              <p style={styles.resultDescription}>
-                {activeType === "blog"
-                  ? "블로그 제목, 본문, 사진 문구, 해시태그를 생성하는 프롬프트예요."
-                  : "15초/30초 영상 스크립트, 후킹 멘트, 자막, 해시태그를 생성하는 프롬프트예요."}
-              </p>
+              <h2 style={styles.resultTitle}>{titleMap[activeType]}</h2>
+              <p style={styles.resultDescription}>{descriptionMap[activeType]}</p>
             </div>
 
             <button type="button" onClick={handleCopy} style={styles.copyButton}>
@@ -127,7 +160,7 @@ const styles = {
     padding: "40px 18px",
   },
   container: {
-    maxWidth: "900px",
+    maxWidth: "980px",
     margin: "0 auto",
   },
   header: {
@@ -165,12 +198,12 @@ const styles = {
   },
   tabButton: {
     flex: 1,
-    padding: "13px 16px",
+    padding: "13px 12px",
     border: "none",
     borderRadius: "10px",
     backgroundColor: "transparent",
     color: "#555",
-    fontSize: "15px",
+    fontSize: "14px",
     fontWeight: "800",
     cursor: "pointer",
   },
